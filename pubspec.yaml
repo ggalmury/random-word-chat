@@ -88,6 +88,9 @@ flutter:
     - family: suit_heavy
       fonts:
         - asset: assets/fonts/suit-heavy.otf
+    - family: pretendard_medium
+      fonts:
+        - asset: assets/fonts/pretendard-medium.otf
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

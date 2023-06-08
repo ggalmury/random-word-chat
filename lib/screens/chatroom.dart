@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:random_word_chat/models/message.dart';
+import 'package:random_word_chat/widgets/boxes/chat_message.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../utils/constants/custom_color.dart';
@@ -16,7 +18,7 @@ class _ChatRoomState extends State<ChatRoom> {
   final TextEditingController _textEditingController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
-  final List<dynamic> _receivedMessage = [];
+  final List<Message> _messageList = [];
 
   void scrollToNewChild() {
     _scrollController.animateTo(
@@ -44,12 +46,12 @@ class _ChatRoomState extends State<ChatRoom> {
     return Scaffold(
         backgroundColor: CustomColor.white,
         appBar: AppBar(
-          title: const Text(
-            "방 이름",
-            style: TextStyle(fontSize: 16, fontFamily: "suit_heavy"),
-          ),
-          centerTitle: true,
-        ),
+            title: const Text(
+              "방 이름",
+              style: TextStyle(fontSize: 16, fontFamily: "suit_heavy"),
+            ),
+            centerTitle: true,
+            backgroundColor: Colors.transparent),
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -62,36 +64,20 @@ class _ChatRoomState extends State<ChatRoom> {
                       stream: widget.channel.stream,
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
-                          _receivedMessage.add(snapshot.data);
+                          Message message = Message.init(false, snapshot.data);
+                          _messageList.add(message);
                         }
                         return ListView.builder(
                             controller: _scrollController,
-                            itemCount: _receivedMessage.length,
+                            itemCount: _messageList.length,
                             itemBuilder: (BuildContext context, int index) {
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 20),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Align(
-                                        alignment: Alignment.centerRight,
-                                        child: Container(
-                                          constraints: const BoxConstraints(
-                                              minWidth: 100),
-                                          color: Colors.yellow,
-                                          child: Text(_receivedMessage[index]),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
+                              return ChatMessage(meta: _messageList[index]);
                             });
                       }),
                 )),
-                SizedBox(
+                Container(
                   height: 50,
+                  margin: const EdgeInsets.symmetric(vertical: 10),
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -99,7 +85,7 @@ class _ChatRoomState extends State<ChatRoom> {
                           width: 300,
                           child: Center(
                             child: SizedBox(
-                              height: 40,
+                              height: 50,
                               child: TextField(
                                 focusNode: _focusNode,
                                 controller: _textEditingController,
@@ -115,19 +101,23 @@ class _ChatRoomState extends State<ChatRoom> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () => {
-                            if (_textEditingController.text.isNotEmpty)
-                              {
-                                widget.channel.sink
-                                    .add(_textEditingController.text),
-                              },
-                            scrollToNewChild(),
-                            _textEditingController.clear()
+                          onTap: () {
+                            if (_textEditingController.text.isNotEmpty) {
+                              widget.channel.sink
+                                  .add(_textEditingController.text);
+                              Message message = Message.init(
+                                  true, _textEditingController.text);
+
+                              _messageList.add(message);
+                            }
+
+                            scrollToNewChild();
+                            _textEditingController.clear();
                           },
                           child: const Icon(Icons.send),
                         )
                       ]),
-                )
+                ),
               ],
             ),
           ),

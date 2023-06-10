@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:random_word_chat/models/room.dart';
 import 'package:random_word_chat/repositories/room_repository.dart';
@@ -18,19 +17,13 @@ class _HomeState extends State<Home> {
   final TextEditingController _roomIdController = TextEditingController();
   final TextEditingController _userNameController = TextEditingController();
 
-  void _navigateToRoom(Room room) {
-    Navigator.push<void>(
-        context,
-        MaterialPageRoute<void>(
-            builder: (BuildContext context) => ChatRoom(
-                  room: room,
-                  myName: _userNameController.text,
-                )));
-  }
-
   void _onJoinRoom(BuildContext context) {
-    Room room = Room(roomId: _roomIdController.text);
-    _navigateToRoom(room);
+    if (_roomIdController.text.isNotEmpty &&
+        _userNameController.text.isNotEmpty) {
+      Room room = Room(roomId: _roomIdController.text);
+
+      _navigateToRoom(room);
+    }
   }
 
   Future<void> _onSubmitRoom(BuildContext context) async {
@@ -40,6 +33,16 @@ class _HomeState extends State<Home> {
 
       _navigateToRoom(room);
     }
+  }
+
+  void _navigateToRoom(Room room) {
+    Navigator.push<void>(
+        context,
+        MaterialPageRoute<void>(
+            builder: (BuildContext context) => ChatRoom(
+                  room: room,
+                  myName: _userNameController.text,
+                )));
   }
 
   void _onCreateRoom(BuildContext context) {

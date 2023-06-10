@@ -6,8 +6,7 @@ class RoomRepository {
   final String serverURL = "http://43.200.100.168:8080";
 
   Future<Room> fetchRoomId(String roomName) async {
-    final response = await http.post(
-        Uri.parse("http://43.200.100.168:8080/api/chat/create"),
+    final response = await http.post(Uri.parse("$serverURL/api/chat/create"),
         body: <String, String>{"name": roomName});
 
     if (response.statusCode == 200 || response.statusCode == 201) {

@@ -14,7 +14,14 @@ class InputRoom extends StatelessWidget {
       decoration: InputDecoration(
           hintText: title,
           hintStyle:
-              const TextStyle(fontFamily: "pretendard_medium", fontSize: 12)),
+              const TextStyle(fontFamily: "pretendard_medium", fontSize: 12),
+          suffixIcon: GestureDetector(
+            onTap: () => textEditingController.clear(),
+            child: const Icon(
+              Icons.cancel,
+              size: 18,
+            ),
+          )),
     );
   }
 }

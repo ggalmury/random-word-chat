@@ -2,7 +2,7 @@ class Message {
   final String type;
   final String roomId;
   final String sender;
-  final dynamic message;
+  final String message;
 
   Message({
     required this.type,
@@ -11,7 +11,7 @@ class Message {
     required this.message,
   });
 
-  Map<String, dynamic> toJson() {
+  Map<String, String> toJson() {
     return {
       'type': type,
       'roomId': roomId,

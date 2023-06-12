@@ -1,23 +1,21 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:random_word_chat/models/message.dart';
 import 'package:random_word_chat/utils/helpers/common_helper.dart';
 import 'package:random_word_chat/widgets/boxes/speech_bubble.dart';
 import 'package:random_word_chat/widgets/boxes/other_message.dart';
-import 'package:web_socket_channel/io.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:stomp_dart_client/stomp.dart';
+import 'package:stomp_dart_client/stomp_config.dart';
+import 'package:stomp_dart_client/stomp_frame.dart';
 import '../models/room.dart';
 import '../utils/constants/custom_color.dart';
 
 class ChatRoom extends StatefulWidget {
-  final WebSocketChannel channel =
-      IOWebSocketChannel.connect("ws://43.200.100.168:8080/room");
   final Room room;
   final String myName;
 
-  ChatRoom({super.key, required this.room, required this.myName});
+  const ChatRoom({super.key, required this.room, required this.myName});
 
   @override
   State<ChatRoom> createState() => _ChatRoomState();
@@ -29,20 +27,40 @@ class _ChatRoomState extends State<ChatRoom> {
   final ScrollController _scrollController = ScrollController();
   final List<Message> _messageList = [];
 
-  void _onMessage(AsyncSnapshot<dynamic> snapshot) {
-    if (snapshot.hasData) {
-      Message message = Message.fromJson(jsonDecode(snapshot.data));
+  late StompClient _stompClient;
 
-      _messageList.add(message);
+  void _copyRoomId() {
+    Clipboard.setData(ClipboardData(text: widget.room.roomId));
+    CommonHelper.showSnackBar(context, "클립보드에 복사되었습니다");
+  }
 
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-        );
-      });
+  Widget _messageBox(Message message) {
+    Widget chat;
+
+    if (message.type == "new") {
+      chat = Center(
+          child: Text(
+        "👋${message.message}",
+        style: const TextStyle(fontFamily: "pretendard_medium"),
+      ));
+    } else {
+      chat = message.sender == widget.myName
+          ? Align(
+              alignment: Alignment.centerRight,
+              child: SpeechBubble(meta: message, currentUser: widget.myName),
+            )
+          : Align(
+              alignment: Alignment.centerLeft,
+              child: OtherMessage(meta: message, currentUser: widget.myName),
+            );
     }
+
+    return chat;
+  }
+
+  void _emitHandler(Message message) {
+    _stompClient.send(
+        destination: '/pub/chat/message', body: jsonEncode(message));
   }
 
   void _emitMessage() {
@@ -53,28 +71,62 @@ class _ChatRoomState extends State<ChatRoom> {
           sender: widget.myName,
           message: _textEditingController.text);
 
-      widget.channel.sink.add(jsonEncode(message));
+      _emitHandler(message);
     }
 
     _textEditingController.clear();
   }
 
-  void _copyRoomId() {
-    Clipboard.setData(ClipboardData(text: widget.room.roomId));
-    CommonHelper.showSnackBar(context, "클립보드에 복사되었습니다");
+  void _onMessage(StompFrame stompFrame) {
+    if (stompFrame.body != null) {
+      final jsonMessage = jsonDecode(stompFrame.body!);
+      final chatMessage = Message.fromJson(jsonMessage);
+
+      setState(() {
+        _messageList.add(chatMessage);
+      });
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      });
+    }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    print(widget.room.roomId);
+  void _onConnect(StompFrame stompFrame) {
+    _stompClient.subscribe(
+        destination: '/sub/chat/room/${widget.room.roomId}',
+        callback: _onMessage);
+
     Message message = Message(
         type: "new",
         roomId: widget.room.roomId,
         sender: widget.myName,
         message: "");
 
-    widget.channel.sink.add(jsonEncode(message));
+    _emitHandler(message);
+  }
+
+  void _onWebSocketError(dynamic error) {
+    print(error);
+  }
+
+  void _connectToChatServer() {
+    _stompClient = StompClient(
+        config: StompConfig.SockJS(
+            url: "http://43.200.100.168:8080/chat",
+            onConnect: _onConnect,
+            onWebSocketError: _onWebSocketError));
+
+    _stompClient.activate();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    print(widget.room.roomId);
+
+    _connectToChatServer();
   }
 
   @override
@@ -82,7 +134,7 @@ class _ChatRoomState extends State<ChatRoom> {
     _textEditingController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
-    widget.channel.sink.close();
+    _stompClient.deactivate();
 
     super.dispose();
   }
@@ -112,7 +164,7 @@ class _ChatRoomState extends State<ChatRoom> {
                       SizedBox(
                         child: Center(
                             child: Text(
-                          "방 코드: ${widget.room.roomId}",
+                          "초대 코드: ${widget.room.roomId}",
                           style: const TextStyle(
                               fontSize: 12, fontFamily: "suit_heavy"),
                         )),
@@ -127,37 +179,16 @@ class _ChatRoomState extends State<ChatRoom> {
                     ]),
                 Expanded(
                     child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: StreamBuilder(
-                      stream: widget.channel.stream,
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          _onMessage(snapshot);
-                        }
-                        return ListView.builder(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        child: ListView.builder(
                             controller: _scrollController,
                             itemCount: _messageList.length,
                             itemBuilder: (BuildContext context, int index) {
                               return Padding(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 10),
-                                  child: _messageList[index].sender ==
-                                          widget.myName
-                                      ? Align(
-                                          alignment: Alignment.centerRight,
-                                          child: SpeechBubble(
-                                              meta: _messageList[index],
-                                              currentUser: widget.myName),
-                                        )
-                                      : Align(
-                                          alignment: Alignment.centerLeft,
-                                          child: OtherMessage(
-                                              meta: _messageList[index],
-                                              currentUser: widget.myName),
-                                        ));
-                            });
-                      }),
-                )),
+                                  child: _messageBox(_messageList[index]));
+                            }))),
                 Container(
                   height: 50,
                   margin: const EdgeInsets.symmetric(vertical: 10),

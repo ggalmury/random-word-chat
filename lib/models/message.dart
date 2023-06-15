@@ -3,13 +3,14 @@ class Message {
   final String roomId;
   final String sender;
   final String message;
+  final DateTime? time;
 
-  Message({
-    required this.type,
-    required this.roomId,
-    required this.sender,
-    required this.message,
-  });
+  Message(
+      {required this.type,
+      required this.roomId,
+      required this.sender,
+      required this.message,
+      this.time});
 
   Map<String, String> toJson() {
     return {
@@ -26,6 +27,7 @@ class Message {
       roomId: json['roomId'],
       sender: json['sender'],
       message: json['message'],
+      time: json['time'],
     );
   }
 }

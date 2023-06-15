@@ -5,11 +5,11 @@ import 'package:random_word_chat/models/message.dart';
 import 'package:random_word_chat/utils/helpers/common_helper.dart';
 import 'package:random_word_chat/widgets/boxes/speech_bubble.dart';
 import 'package:random_word_chat/widgets/boxes/other_message.dart';
+import 'package:random_word_chat/widgets/inputs/input_message.dart';
 import 'package:stomp_dart_client/stomp.dart';
 import 'package:stomp_dart_client/stomp_config.dart';
 import 'package:stomp_dart_client/stomp_frame.dart';
 import '../models/room.dart';
-import '../utils/constants/custom_color.dart';
 
 class ChatRoom extends StatefulWidget {
   final Room room;
@@ -138,11 +138,7 @@ class _ChatRoomState extends State<ChatRoom> {
 
   @override
   Widget build(BuildContext context) {
-    OutlineInputBorder outlineInputBorder = OutlineInputBorder(
-        borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: Colors.grey, width: 2));
     return Scaffold(
-        backgroundColor: CustomColor.white,
         appBar: AppBar(
             title: const Text("방 이름",
                 style: TextStyle(fontSize: 16, fontFamily: "suit_heavy")),
@@ -169,7 +165,7 @@ class _ChatRoomState extends State<ChatRoom> {
                     ]),
                 Expanded(
                     child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
                         child: ListView.builder(
                             controller: _scrollController,
                             itemCount: _messageList.length,
@@ -180,28 +176,14 @@ class _ChatRoomState extends State<ChatRoom> {
                                   child: _messageBox(_messageList[index]));
                             }))),
                 Container(
-                  height: 50,
-                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  height: 60,
+                  margin: const EdgeInsets.only(bottom: 20),
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        SizedBox(
-                          width: 300,
-                          child: Center(
-                            child: SizedBox(
-                              height: 50,
-                              child: TextField(
-                                focusNode: _focusNode,
-                                controller: _textEditingController,
-                                textAlignVertical: TextAlignVertical.center,
-                                style: const TextStyle(
-                                    fontSize: 14, fontFamily: "suit_heavy"),
-                                decoration: InputDecoration(
-                                    enabledBorder: outlineInputBorder,
-                                    focusedBorder: outlineInputBorder),
-                              ),
-                            ),
-                          ),
+                        InputMessage(
+                          textEditingController: _textEditingController,
+                          focusNode: _focusNode,
                         ),
                         GestureDetector(
                           onTap: _emitMessage,

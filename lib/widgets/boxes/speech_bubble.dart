@@ -6,15 +6,16 @@ import '../../models/message.dart';
 class SpeechBubble extends StatelessWidget {
   final Message meta;
   final bool isMyMessage;
-  final DateTime dateTime = DateTime.now();
 
-  SpeechBubble({super.key, required this.meta, required this.isMyMessage});
+  const SpeechBubble(
+      {super.key, required this.meta, required this.isMyMessage});
 
   List<Widget> _widgets() {
     DateFormat dateFormat = DateFormat("HH:mm");
 
     return [
-      Text(dateFormat.format(dateTime), style: const TextStyle(fontSize: 12)),
+      Text(dateFormat.format(meta.time ?? DateTime.now()),
+          style: const TextStyle(fontSize: 12)),
       const SizedBox(width: 10),
       Container(
           constraints: const BoxConstraints(

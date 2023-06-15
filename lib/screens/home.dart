@@ -100,13 +100,9 @@ class _HomeState extends State<Home> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  const Text(
-                    "랜덤 알고리즘을 이용한 채팅 어플",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontFamily: "kangwon_bold",
-                    ),
-                  ),
+                  const Text("랜덤 알고리즘을 이용한 채팅 어플",
+                      style:
+                          TextStyle(fontSize: 20, fontFamily: "kangwon_bold")),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [

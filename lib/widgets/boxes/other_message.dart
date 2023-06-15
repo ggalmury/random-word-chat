@@ -4,14 +4,14 @@ import '../../models/message.dart';
 
 class OtherMessage extends StatelessWidget {
   final Message meta;
-  final String currentUser;
+  final bool isMyMessage;
 
   const OtherMessage(
-      {super.key, required this.meta, required this.currentUser});
+      {super.key, required this.meta, required this.isMyMessage});
 
   @override
   Widget build(BuildContext context) {
-    return Row(children: [
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Container(
         width: 30,
         height: 30,
@@ -23,7 +23,7 @@ class OtherMessage extends StatelessWidget {
       const SizedBox(width: 10),
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(meta.sender),
-        SpeechBubble(meta: meta, currentUser: currentUser)
+        SpeechBubble(meta: meta, isMyMessage: isMyMessage)
       ])
     ]);
   }

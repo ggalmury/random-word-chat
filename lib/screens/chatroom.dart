@@ -45,14 +45,10 @@ class _ChatRoomState extends State<ChatRoom> {
       ));
     } else {
       chat = message.sender == widget.myName
-          ? Align(
-              alignment: Alignment.centerRight,
-              child: SpeechBubble(meta: message, currentUser: widget.myName),
-            )
-          : Align(
-              alignment: Alignment.centerLeft,
-              child: OtherMessage(meta: message, currentUser: widget.myName),
-            );
+          ? SpeechBubble(
+              meta: message, isMyMessage: message.sender == widget.myName)
+          : OtherMessage(
+              meta: message, isMyMessage: message.sender == widget.myName);
     }
 
     return chat;
@@ -113,6 +109,7 @@ class _ChatRoomState extends State<ChatRoom> {
   void _connectToChatServer() {
     _stompClient = StompClient(
         config: StompConfig.SockJS(
+            // TODO: 환경변수로 빼놓기
             url: "http://43.200.100.168:8080/chat",
             onConnect: _onConnect,
             onWebSocketError: _onWebSocketError));
@@ -147,10 +144,8 @@ class _ChatRoomState extends State<ChatRoom> {
     return Scaffold(
         backgroundColor: CustomColor.white,
         appBar: AppBar(
-            title: const Text(
-              "방 이름",
-              style: TextStyle(fontSize: 16, fontFamily: "suit_heavy"),
-            ),
+            title: const Text("방 이름",
+                style: TextStyle(fontSize: 16, fontFamily: "suit_heavy")),
             centerTitle: true,
             backgroundColor: Colors.transparent),
         body: SafeArea(
@@ -163,18 +158,13 @@ class _ChatRoomState extends State<ChatRoom> {
                     children: [
                       SizedBox(
                         child: Center(
-                            child: Text(
-                          "초대 코드: ${widget.room.roomId}",
-                          style: const TextStyle(
-                              fontSize: 12, fontFamily: "suit_heavy"),
-                        )),
+                            child: Text("초대 코드: ${widget.room.roomId}",
+                                style: const TextStyle(
+                                    fontSize: 12, fontFamily: "suit_heavy"))),
                       ),
                       GestureDetector(
                         onTap: _copyRoomId,
-                        child: const Icon(
-                          Icons.copy,
-                          size: 20,
-                        ),
+                        child: const Icon(Icons.copy, size: 20),
                       )
                     ]),
                 Expanded(
@@ -207,9 +197,8 @@ class _ChatRoomState extends State<ChatRoom> {
                                 style: const TextStyle(
                                     fontSize: 14, fontFamily: "suit_heavy"),
                                 decoration: InputDecoration(
-                                  enabledBorder: outlineInputBorder,
-                                  focusedBorder: outlineInputBorder,
-                                ),
+                                    enabledBorder: outlineInputBorder,
+                                    focusedBorder: outlineInputBorder),
                               ),
                             ),
                           ),

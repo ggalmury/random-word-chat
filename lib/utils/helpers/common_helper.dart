@@ -21,4 +21,13 @@ class CommonHelper {
 
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
+
+  static void navigatePushHandler(BuildContext context, Widget widget) {
+    Navigator.push<void>(context,
+        MaterialPageRoute<void>(builder: (BuildContext context) => widget));
+  }
+
+  static void navigatePopHandler(BuildContext context) {
+    Navigator.of(context).pop();
+  }
 }

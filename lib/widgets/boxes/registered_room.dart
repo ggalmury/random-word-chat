@@ -21,7 +21,7 @@ class RegisteredRoom extends StatelessWidget {
                   width: 50,
                   height: 50,
                   decoration: const BoxDecoration(
-                      color: Colors.red, shape: BoxShape.circle)),
+                      color: Colors.grey, shape: BoxShape.circle)),
               const SizedBox(
                 width: 20,
               ),

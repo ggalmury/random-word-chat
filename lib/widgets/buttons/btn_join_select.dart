@@ -15,6 +15,7 @@ class BtnJoinSelect extends StatelessWidget {
         onPressed(context);
       },
       style: ElevatedButton.styleFrom(
+          fixedSize: const Size(80, 35),
           backgroundColor: CustomColor.violet,
           foregroundColor: CustomColor.white,
           shadowColor: Colors.transparent,

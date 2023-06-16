@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:random_word_chat/screens/home.dart';
+import 'package:random_word_chat/screens/room_list.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
             elevation: 0,
             foregroundColor: Colors.black,
           )),
-      home: const Home(),
+      home: const RoomList(),
     );
   }
 }

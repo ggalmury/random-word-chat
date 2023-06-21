@@ -1,18 +1,16 @@
-class Message {
+class MessageDto {
   final String type;
   final String roomId;
   final String sender;
   final String message;
-  final DateTime? time;
 
-  Message(
+  MessageDto(
       {required this.type,
       required this.roomId,
       required this.sender,
-      required this.message,
-      this.time});
+      required this.message});
 
-  Map<String, String> toJson() {
+  Map<String, dynamic> toJson() {
     return {
       'type': type,
       'roomId': roomId,
@@ -21,13 +19,12 @@ class Message {
     };
   }
 
-  factory Message.fromJson(Map<String, dynamic> json) {
-    return Message(
+  factory MessageDto.fromJson(Map<String, dynamic> json) {
+    return MessageDto(
       type: json['type'],
       roomId: json['roomId'],
       sender: json['sender'],
       message: json['message'],
-      time: json['time'],
     );
   }
 }

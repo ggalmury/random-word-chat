@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:random_word_chat/repositories/external/room_api.dart';
 import 'package:random_word_chat/utils/constants/custom_color.dart';
 import 'package:random_word_chat/utils/helpers/common_helper.dart';
 import 'package:random_word_chat/widgets/boxes/registered_room.dart';
-import '../models/room.dart';
-import '../repositories/room_repository.dart';
+import '../models/external/room_dto.dart';
 import '../widgets/buttons/btn_room_category.dart';
 import '../widgets/modals/room_creact_dialog.dart';
 import 'chatroom.dart';
@@ -18,22 +18,18 @@ class RoomList extends StatefulWidget {
 class _RoolListState extends State<RoomList> {
   final TextEditingController _roomIdController = TextEditingController();
   final TextEditingController _userNameController = TextEditingController();
-  List<String> tempList = [
-    "방1",
-    "방2",
-    "방3",
-    "방4",
-    "방5",
-    "방6",
-    "방7",
-    "방8",
-    "방9"
-  ];
+  List<RoomDto> roomList = [];
   int _bottomNavigationIndex = 0;
 
   void _setBottomNavigationIndex(int index) {
     setState(() {
       _bottomNavigationIndex = index;
+    });
+  }
+
+  void _setRoomList(RoomDto room) {
+    setState(() {
+      roomList.add(room);
     });
   }
 
@@ -62,22 +58,28 @@ class _RoolListState extends State<RoomList> {
   Future<void> _gotoCreatedRoom(BuildContext context) async {
     if (_roomIdController.text.isNotEmpty &&
         _userNameController.text.isNotEmpty) {
-      Room room = await RoomRepository().fetchRoomId(_roomIdController.text);
+      RoomDto roomDto = await RoomApi().fetchRoomCreate(_roomIdController.text);
 
       if (!mounted) return;
 
+      _setRoomList(roomDto);
+
       CommonHelper.navigatePushHandler(
-          context, ChatRoom(room: room, myName: _userNameController.text));
+          context, ChatRoom(room: roomDto, myName: _userNameController.text));
     }
   }
 
-  void _gotoJoinedRoom(BuildContext context) {
+  Future<void> _gotoJoinedRoom(BuildContext context) async {
     if (_roomIdController.text.isNotEmpty &&
         _userNameController.text.isNotEmpty) {
-      Room room = Room(roomId: _roomIdController.text);
+      RoomDto roomDto = await RoomApi().fetchRoomJoin(_roomIdController.text);
 
-      CommonHelper.navigatePushHandler(
-          context, ChatRoom(room: room, myName: _userNameController.text));
+      if (!mounted) return;
+
+      if (!roomList.contains(roomDto)) _setRoomList(roomDto);
+
+      // CommonHelper.navigatePushHandler(
+      //     context, ChatRoom(room: roomDto, myName: _userNameController.text));
     }
   }
 
@@ -164,9 +166,9 @@ class _RoolListState extends State<RoomList> {
             ),
             Expanded(
               child: ListView.builder(
-                itemCount: tempList.length,
+                itemCount: roomList.length,
                 itemBuilder: (BuildContext context, int index) {
-                  return RegisteredRoom(testRoomName: tempList[index]);
+                  return RegisteredRoom(room: roomList[index]);
                 },
               ),
             )

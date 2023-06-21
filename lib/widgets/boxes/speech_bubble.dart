@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:random_word_chat/utils/constants/custom_color.dart';
-import '../../models/message.dart';
+import '../../models/external/message_dto.dart';
 
 class SpeechBubble extends StatelessWidget {
-  final Message meta;
+  final MessageDto meta;
   final bool isMyMessage;
 
   const SpeechBubble(
@@ -14,7 +14,7 @@ class SpeechBubble extends StatelessWidget {
     DateFormat dateFormat = DateFormat("HH:mm");
 
     return [
-      Text(dateFormat.format(meta.time ?? DateTime.now()),
+      Text(dateFormat.format(DateTime.now()),
           style: const TextStyle(fontSize: 12)),
       const SizedBox(width: 10),
       Container(

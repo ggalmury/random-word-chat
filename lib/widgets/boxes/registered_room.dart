@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:random_word_chat/models/external/room_dto.dart';
 
 class RegisteredRoom extends StatelessWidget {
-  final String testRoomName;
+  final RoomDto room;
 
-  const RegisteredRoom({super.key, required this.testRoomName});
+  const RegisteredRoom({super.key, required this.room});
 
   @override
   Widget build(BuildContext context) {
@@ -33,10 +34,14 @@ class RegisteredRoom extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            testRoomName,
-                            style: const TextStyle(
-                                fontFamily: "suit_heavy", fontSize: 16),
+                          SizedBox(
+                            width: 200,
+                            child: Text(
+                              room.roomName ?? "새로운 방",
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontFamily: "suit_heavy", fontSize: 16),
+                            ),
                           ),
                           const Text("12:01",
                               style: TextStyle(

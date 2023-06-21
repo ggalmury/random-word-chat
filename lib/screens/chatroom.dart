@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:random_word_chat/models/message.dart';
+import 'package:random_word_chat/models/external/message_dto.dart';
 import 'package:random_word_chat/utils/helpers/common_helper.dart';
 import 'package:random_word_chat/widgets/boxes/speech_bubble.dart';
 import 'package:random_word_chat/widgets/boxes/other_message.dart';
@@ -9,10 +9,10 @@ import 'package:random_word_chat/widgets/inputs/input_message.dart';
 import 'package:stomp_dart_client/stomp.dart';
 import 'package:stomp_dart_client/stomp_config.dart';
 import 'package:stomp_dart_client/stomp_frame.dart';
-import '../models/room.dart';
+import '../models/external/room_dto.dart';
 
 class ChatRoom extends StatefulWidget {
-  final Room room;
+  final RoomDto room;
   final String myName;
 
   const ChatRoom({super.key, required this.room, required this.myName});
@@ -25,7 +25,7 @@ class _ChatRoomState extends State<ChatRoom> {
   final TextEditingController _textEditingController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
-  final List<Message> _messageList = [];
+  final List<RoomDto> _messageList = [];
 
   late StompClient _stompClient;
 
@@ -34,7 +34,7 @@ class _ChatRoomState extends State<ChatRoom> {
     CommonHelper.showSnackBar(context, "클립보드에 복사되었습니다");
   }
 
-  Widget _messageBox(Message message) {
+  Widget _messageBox(MessageDto message) {
     Widget chat;
 
     if (message.type == "new") {
@@ -54,14 +54,14 @@ class _ChatRoomState extends State<ChatRoom> {
     return chat;
   }
 
-  void _emitHandler(Message message) {
+  void _emitHandler(MessageDto message) {
     _stompClient.send(
         destination: '/pub/chat/message', body: jsonEncode(message));
   }
 
   void _emitMessage() {
     if (_textEditingController.text.isNotEmpty) {
-      Message message = Message(
+      MessageDto message = MessageDto(
           type: "talk",
           roomId: widget.room.roomId,
           sender: widget.myName,
@@ -76,11 +76,11 @@ class _ChatRoomState extends State<ChatRoom> {
   void _onMessage(StompFrame stompFrame) {
     if (stompFrame.body != null) {
       final jsonMessage = jsonDecode(stompFrame.body!);
-      final chatMessage = Message.fromJson(jsonMessage);
+      final chatMessage = MessageDto.fromJson(jsonMessage);
 
-      setState(() {
-        _messageList.add(chatMessage);
-      });
+      // setState(() {
+      //   _messageList.add(chatMessage);
+      // });
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
@@ -93,7 +93,7 @@ class _ChatRoomState extends State<ChatRoom> {
         destination: '/sub/chat/room/${widget.room.roomId}',
         callback: _onMessage);
 
-    Message message = Message(
+    MessageDto message = MessageDto(
         type: "new",
         roomId: widget.room.roomId,
         sender: widget.myName,
@@ -163,18 +163,18 @@ class _ChatRoomState extends State<ChatRoom> {
                         child: const Icon(Icons.copy, size: 20),
                       )
                     ]),
-                Expanded(
-                    child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        child: ListView.builder(
-                            controller: _scrollController,
-                            itemCount: _messageList.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              return Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 10),
-                                  child: _messageBox(_messageList[index]));
-                            }))),
+                // Expanded(
+                //     child: Padding(
+                //         padding: const EdgeInsets.symmetric(vertical: 10),
+                //         child: ListView.builder(
+                //             controller: _scrollController,
+                //             itemCount: _messageList.length,
+                //             itemBuilder: (BuildContext context, int index) {
+                //               return Padding(
+                //                   padding:
+                //                       const EdgeInsets.symmetric(vertical: 10),
+                //                   child: _messageBox(_messageList[index]));
+                //             }))),
                 Container(
                   height: 60,
                   margin: const EdgeInsets.only(bottom: 20),

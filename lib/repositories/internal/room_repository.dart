@@ -12,7 +12,7 @@ class RoomRepository {
     int insertedId = await db.insert(tableName, roomDto.toJson());
 
     var result =
-        await db.query(tableName, where: "id= ?", whereArgs: [insertedId]);
+        await db.query(tableName, where: "id = ?", whereArgs: [insertedId]);
 
     return Room.fromJson(result[0]);
   }

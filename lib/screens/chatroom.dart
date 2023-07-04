@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:random_word_chat/models/external/message_dto.dart';
 import 'package:random_word_chat/utils/helpers/common_helper.dart';
+import 'package:random_word_chat/utils/helpers/stomp_provider.dart';
 import 'package:random_word_chat/widgets/boxes/speech_bubble.dart';
 import 'package:random_word_chat/widgets/boxes/other_message.dart';
 import 'package:random_word_chat/widgets/inputs/input_message.dart';
@@ -53,11 +54,6 @@ class _ChatRoomState extends State<ChatRoom> {
     return chat;
   }
 
-  void _emitHandler(MessageDto message) {
-    widget.stompClient
-        .send(destination: '/pub/chat/message', body: jsonEncode(message));
-  }
-
   void _emitMessage() {
     if (_textEditingController.text.isNotEmpty) {
       MessageDto message = MessageDto(
@@ -66,7 +62,7 @@ class _ChatRoomState extends State<ChatRoom> {
           sender: widget.room.userName,
           message: _textEditingController.text);
 
-      _emitHandler(message);
+      StompProvider().emitMessage(message);
     }
 
     _textEditingController.clear();

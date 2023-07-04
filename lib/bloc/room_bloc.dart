@@ -21,7 +21,7 @@ class RoomBloc extends Bloc<DefaultRoomEvent, DefaultRoomState> {
   }
 
   Future<void> _createRoomHandler(CreateRoomEvent event, emit) async {
-    List<Room> roomList = state.roomList;
+    List<Room> roomList = List.from(state.roomList);
     Room createdRoom = await _roomRepository.insertRoom(event.roomDto);
 
     roomList.insert(0, createdRoom);

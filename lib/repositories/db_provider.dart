@@ -30,24 +30,38 @@ class DbProvider {
   }
 
   FutureOr<void> _onCreate(Database db, int version) async {
-    String roomSql = '''CREATE TABLE room
+    String roomSql = '''CREATE TABLE room(
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         roomId TEXT,
                         roomName TEXT,
-                        lastMessage TEXT,
-                        lastMessageTime DATETIME,
-                        time DATETIME''';
-    String messageSql = '''CREATE TABLE message
+                        userName TEXT)''';
+    String messageSql = '''CREATE TABLE message(
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     type TEXT,
                     roomId TEXT,
                     sender TEXT,
                     message TEXT,
-                    time DATETIME''';
+                    time DATETIME)''';
 
     await db.execute(roomSql);
     await db.execute(messageSql);
   }
 
-  FutureOr<void> _onUpgrade(Database db, int oldVersion, int newVersion) {}
+  FutureOr<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    // temp
+    if (newVersion == 2) {
+      // Modify scheme
+      await db.execute("DROP TABLE room");
+
+      String roomSql = '''CREATE TABLE room(
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        roomId TEXT,
+                        roomName TEXT,
+                        userName TEXT)''';
+      await db.execute(roomSql);
+    } else if (newVersion == 4) {
+      // Delete all rows
+      await db.execute("DELETE FROM room");
+    }
+  }
 }

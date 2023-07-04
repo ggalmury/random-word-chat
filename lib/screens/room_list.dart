@@ -1,16 +1,11 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:random_word_chat/bloc/last_message_bloc.dart';
 import 'package:random_word_chat/bloc/room_bloc.dart';
-import 'package:random_word_chat/models/internal/room.dart';
 import 'package:random_word_chat/repositories/external/room_api.dart';
 import 'package:random_word_chat/utils/constants/custom_color.dart';
+import 'package:random_word_chat/utils/helpers/stomp_provider.dart';
 import 'package:random_word_chat/widgets/boxes/registered_room.dart';
-import 'package:stomp_dart_client/stomp.dart';
-import 'package:stomp_dart_client/stomp_config.dart';
-import 'package:stomp_dart_client/stomp_frame.dart';
-import '../models/external/message_dto.dart';
 import '../models/external/room_dto.dart';
 import '../utils/helpers/common_helper.dart';
 import '../widgets/buttons/btn_room_category.dart';
@@ -28,8 +23,6 @@ class _RoolListState extends State<RoomList> {
   final TextEditingController _roomIdController = TextEditingController();
   final TextEditingController _userNameController = TextEditingController();
   int _bottomNavigationIndex = 0;
-
-  late StompClient _stompClient;
 
   void _setBottomNavigationIndex(int index) {
     setState(() {
@@ -59,10 +52,6 @@ class _RoolListState extends State<RoomList> {
     _bottomNavigationEvent(index);
   }
 
-  TextStyle _bottomNavigationBarTextStyle() {
-    return const TextStyle(fontFamily: "pretendard_medium", fontSize: 10);
-  }
-
   Widget _bottomNavigationBarIcon(IconData icon) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
@@ -89,11 +78,7 @@ class _RoolListState extends State<RoomList> {
 
       if (!mounted) return;
 
-      List<Room> roomList = context.read<RoomBloc>().state.roomList;
-
-      if (!roomList.any((room) => room.roomId == roomDto.roomId)) {
-        context.read<RoomBloc>().add(CreateRoomEvent(roomDto: roomDto));
-      }
+      context.read<RoomBloc>().add(CreateRoomEvent(roomDto: roomDto));
     }
   }
 
@@ -101,80 +86,63 @@ class _RoolListState extends State<RoomList> {
     showDialog(
         context: context,
         builder: (context) {
-          return RoomCreateDialog(
-              title: "방 생성하기",
-              title1: "방 이름",
-              title2: "닉네임",
-              btnText: "확인",
-              roomController: _roomIdController,
-              nameController: _userNameController,
-              onSubmit: _gotoCreatedRoom);
+          return BlocListener<RoomBloc, DefaultRoomState>(
+            listener: (context, state) {
+              Navigator.pop(context);
+
+              CommonHelper.navigatePushHandler(
+                  context,
+                  ChatRoom(
+                      room: state.roomList[0],
+                      stompClient: StompProvider().stompClient));
+            },
+            child: RoomCreateDialog(
+                title: "방 생성하기",
+                title1: "방 이름",
+                title2: "닉네임",
+                btnText: "확인",
+                roomController: _roomIdController,
+                nameController: _userNameController,
+                onSubmit: _gotoCreatedRoom),
+          );
         });
   }
 
   void _joinRoomDialog() {
     showDialog(
-      context: context,
-      builder: (context) {
-        return RoomCreateDialog(
-            title: "방 참가하기",
-            title1: "방 ID",
-            title2: "닉네임",
-            btnText: "확인",
-            roomController: _roomIdController,
-            nameController: _userNameController,
-            onSubmit: _gotoJoinedRoom);
-      },
-    ).then((value) {
-      _roomIdController.clear();
-      _userNameController.clear();
-    });
-  }
+        context: context,
+        builder: (context) {
+          return BlocListener<RoomBloc, DefaultRoomState>(
+            listener: (context, state) {
+              Navigator.pop(context);
 
-  void _connectToChatServer() {
-    _stompClient = StompClient(
-        config: StompConfig.SockJS(
-            url: "http://43.200.100.168:8080/chat",
-            onConnect: _onConnect,
-            onWebSocketError: _onWebSocketError));
-
-    _stompClient.activate();
-  }
-
-  void _onConnect(StompFrame stompFrame) {
-    List<Room> roomList = context.read<RoomBloc>().state.roomList;
-
-    for (var room in roomList) {
-      _stompClient.subscribe(
-          destination: '/sub/chat/room/${room.roomId}', callback: _onMessage);
-
-      MessageDto message = MessageDto(
-          type: "new", roomId: room.roomId, sender: room.userName, message: "");
-
-      _stompClient.send(
-          destination: '/pub/chat/message', body: jsonEncode(message));
-    }
-  }
-
-  void _onWebSocketError(dynamic error) {
-    print(error);
-  }
-
-  void _onMessage(StompFrame stompFrame) {
-    if (stompFrame.body != null) {
-      final jsonMessage = jsonDecode(stompFrame.body!);
-      final chatMessage = MessageDto.fromJson(jsonMessage);
-
-      context
-          .read<LastMessageBloc>()
-          .add(UpdateLastMessageEvent(messageDto: chatMessage));
-    }
+              CommonHelper.navigatePushHandler(
+                  context,
+                  ChatRoom(
+                      room: state.roomList[0],
+                      stompClient: StompProvider().stompClient));
+            },
+            child: RoomCreateDialog(
+                title: "방 참가하기",
+                title1: "방 ID",
+                title2: "닉네임",
+                btnText: "확인",
+                roomController: _roomIdController,
+                nameController: _userNameController,
+                onSubmit: _gotoJoinedRoom),
+          );
+        });
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _connectToChatServer();
+
+    StompProvider()
+        .injectBloc(context.read<RoomBloc>(), context.read<LastMessageBloc>());
+    StompProvider().connectToChatServer();
+
+    context.read<RoomBloc>().add(GetAllRoomsEvent());
   }
 
   @override
@@ -233,8 +201,10 @@ class _RoolListState extends State<RoomList> {
           BottomNavigationBarItem(
               icon: _bottomNavigationBarIcon(Icons.settings), label: "설정")
         ],
-        selectedLabelStyle: _bottomNavigationBarTextStyle(),
-        unselectedLabelStyle: _bottomNavigationBarTextStyle(),
+        selectedLabelStyle:
+            const TextStyle(fontFamily: "pretendard_medium", fontSize: 10),
+        unselectedLabelStyle:
+            const TextStyle(fontFamily: "pretendard_medium", fontSize: 10),
         selectedItemColor: CustomColor.violet,
         currentIndex: _bottomNavigationIndex,
         onTap: _onBottomNavigationItemTap,

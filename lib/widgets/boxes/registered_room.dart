@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/internal/room.dart';
+import '../../screens/chatroom.dart';
+import '../../utils/helpers/common_helper.dart';
+import '../../utils/helpers/stomp_provider.dart';
 
 class RegisteredRoom extends StatelessWidget {
   final Room room;
@@ -10,7 +13,8 @@ class RegisteredRoom extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        print("방 클릭");
+        CommonHelper.navigatePushHandler(context,
+            ChatRoom(room: room, stompClient: StompProvider().stompClient));
       },
       child: Container(
           height: 80,

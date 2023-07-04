@@ -12,9 +12,9 @@ class RoomApi {
     if (response.statusCode == 200 || response.statusCode == 201) {
       final responseData = jsonDecode(response.body);
 
-      RoomDto room = RoomDto.fromJson(responseData);
+      RoomDto roomDto = RoomDto.fromJson(responseData);
 
-      return room;
+      return roomDto;
     } else {
       throw Exception("Failed to create room");
     }
@@ -36,19 +36,19 @@ class RoomApi {
     }
   }
 
-  Future<List<RoomDto>> fetchRoomList() async {
-    final response = await http.get(Uri.parse("$serverURL/api/chat/all"));
+  // Future<List<RoomDto>> fetchRoomList() async {
+  //   final response = await http.get(Uri.parse("$serverURL/api/chat/all"));
 
-    if (response.statusCode == 202) {
-      final responseData = jsonDecode(response.body) as List<dynamic>;
+  //   if (response.statusCode == 202) {
+  //     final responseData = jsonDecode(response.body) as List<dynamic>;
 
-      List<RoomDto> rooms = responseData.map((room) {
-        return RoomDto.fromJson(room);
-      }).toList();
+  //     List<RoomDto> rooms = responseData.map((room) {
+  //       return RoomDto.fromJson(room);
+  //     }).toList();
 
-      return rooms;
-    } else {
-      throw Exception("Failed to fetch room list");
-    }
-  }
+  //     return rooms;
+  //   } else {
+  //     throw Exception("Failed to fetch room list");
+  //   }
+  // }
 }

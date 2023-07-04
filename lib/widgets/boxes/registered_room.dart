@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:random_word_chat/models/external/room_dto.dart';
+import '../../models/internal/room.dart';
 
 class RegisteredRoom extends StatelessWidget {
-  final RoomDto room;
+  final Room room;
 
   const RegisteredRoom({super.key, required this.room});
 

@@ -24,7 +24,7 @@ class RoomBloc extends Bloc<DefaultRoomEvent, DefaultRoomState> {
     List<Room> roomList = state.roomList;
     Room createdRoom = await _roomRepository.insertRoom(event.roomDto);
 
-    roomList.add(createdRoom);
+    roomList.insert(0, createdRoom);
 
     emit(CurrentRoomState(roomList: roomList));
   }

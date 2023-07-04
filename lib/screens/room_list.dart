@@ -1,9 +1,18 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:random_word_chat/bloc/last_message_bloc.dart';
+import 'package:random_word_chat/bloc/room_bloc.dart';
+import 'package:random_word_chat/models/internal/room.dart';
 import 'package:random_word_chat/repositories/external/room_api.dart';
 import 'package:random_word_chat/utils/constants/custom_color.dart';
-import 'package:random_word_chat/utils/helpers/common_helper.dart';
 import 'package:random_word_chat/widgets/boxes/registered_room.dart';
+import 'package:stomp_dart_client/stomp.dart';
+import 'package:stomp_dart_client/stomp_config.dart';
+import 'package:stomp_dart_client/stomp_frame.dart';
+import '../models/external/message_dto.dart';
 import '../models/external/room_dto.dart';
+import '../utils/helpers/common_helper.dart';
 import '../widgets/buttons/btn_room_category.dart';
 import '../widgets/modals/room_creact_dialog.dart';
 import 'chatroom.dart';
@@ -18,8 +27,9 @@ class RoomList extends StatefulWidget {
 class _RoolListState extends State<RoomList> {
   final TextEditingController _roomIdController = TextEditingController();
   final TextEditingController _userNameController = TextEditingController();
-  List<RoomDto> roomList = [];
   int _bottomNavigationIndex = 0;
+
+  late StompClient _stompClient;
 
   void _setBottomNavigationIndex(int index) {
     setState(() {
@@ -27,19 +37,13 @@ class _RoolListState extends State<RoomList> {
     });
   }
 
-  void _setRoomList(RoomDto room) {
-    setState(() {
-      roomList.add(room);
-    });
-  }
-
   void _bottomNavigationEvent(int index) {
     switch (index) {
       case 0:
-        _createRoomDialog(context);
+        _createRoomDialog();
         break;
       case 1:
-        _joinRoomDialog(context);
+        _joinRoomDialog();
         break;
       case 2:
         print("설정");
@@ -55,17 +59,26 @@ class _RoolListState extends State<RoomList> {
     _bottomNavigationEvent(index);
   }
 
+  TextStyle _bottomNavigationBarTextStyle() {
+    return const TextStyle(fontFamily: "pretendard_medium", fontSize: 10);
+  }
+
+  Widget _bottomNavigationBarIcon(IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Icon(icon),
+    );
+  }
+
   Future<void> _gotoCreatedRoom(BuildContext context) async {
     if (_roomIdController.text.isNotEmpty &&
         _userNameController.text.isNotEmpty) {
       RoomDto roomDto = await RoomApi().fetchRoomCreate(_roomIdController.text);
+      roomDto.userName = _userNameController.text;
 
       if (!mounted) return;
 
-      _setRoomList(roomDto);
-
-      CommonHelper.navigatePushHandler(
-          context, ChatRoom(room: roomDto, myName: _userNameController.text));
+      context.read<RoomBloc>().add(CreateRoomEvent(roomDto: roomDto));
     }
   }
 
@@ -76,14 +89,15 @@ class _RoolListState extends State<RoomList> {
 
       if (!mounted) return;
 
-      if (!roomList.contains(roomDto)) _setRoomList(roomDto);
+      List<Room> roomList = context.read<RoomBloc>().state.roomList;
 
-      // CommonHelper.navigatePushHandler(
-      //     context, ChatRoom(room: roomDto, myName: _userNameController.text));
+      if (!roomList.any((room) => room.roomId == roomDto.roomId)) {
+        context.read<RoomBloc>().add(CreateRoomEvent(roomDto: roomDto));
+      }
     }
   }
 
-  void _createRoomDialog(BuildContext context) {
+  void _createRoomDialog() {
     showDialog(
         context: context,
         builder: (context) {
@@ -95,13 +109,10 @@ class _RoolListState extends State<RoomList> {
               roomController: _roomIdController,
               nameController: _userNameController,
               onSubmit: _gotoCreatedRoom);
-        }).then((value) {
-      _roomIdController.clear();
-      _userNameController.clear();
-    });
+        });
   }
 
-  void _joinRoomDialog(BuildContext context) {
+  void _joinRoomDialog() {
     showDialog(
       context: context,
       builder: (context) {
@@ -120,15 +131,50 @@ class _RoolListState extends State<RoomList> {
     });
   }
 
-  TextStyle _bottomNavigationBarTextStyle() {
-    return const TextStyle(fontFamily: "pretendard_medium", fontSize: 10);
+  void _connectToChatServer() {
+    _stompClient = StompClient(
+        config: StompConfig.SockJS(
+            url: "http://43.200.100.168:8080/chat",
+            onConnect: _onConnect,
+            onWebSocketError: _onWebSocketError));
+
+    _stompClient.activate();
   }
 
-  Widget _bottomNavigationBarIcon(IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Icon(icon),
-    );
+  void _onConnect(StompFrame stompFrame) {
+    List<Room> roomList = context.read<RoomBloc>().state.roomList;
+
+    for (var room in roomList) {
+      _stompClient.subscribe(
+          destination: '/sub/chat/room/${room.roomId}', callback: _onMessage);
+
+      MessageDto message = MessageDto(
+          type: "new", roomId: room.roomId, sender: room.userName, message: "");
+
+      _stompClient.send(
+          destination: '/pub/chat/message', body: jsonEncode(message));
+    }
+  }
+
+  void _onWebSocketError(dynamic error) {
+    print(error);
+  }
+
+  void _onMessage(StompFrame stompFrame) {
+    if (stompFrame.body != null) {
+      final jsonMessage = jsonDecode(stompFrame.body!);
+      final chatMessage = MessageDto.fromJson(jsonMessage);
+
+      context
+          .read<LastMessageBloc>()
+          .add(UpdateLastMessageEvent(messageDto: chatMessage));
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _connectToChatServer();
   }
 
   @override
@@ -165,12 +211,15 @@ class _RoolListState extends State<RoomList> {
               ),
             ),
             Expanded(
-              child: ListView.builder(
-                itemCount: roomList.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return RegisteredRoom(room: roomList[index]);
-                },
-              ),
+              child: BlocBuilder<RoomBloc, DefaultRoomState>(
+                  builder: (context, state) {
+                return ListView.builder(
+                  itemCount: state.roomList.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return RegisteredRoom(room: state.roomList[index]);
+                  },
+                );
+              }),
             )
           ],
         ),

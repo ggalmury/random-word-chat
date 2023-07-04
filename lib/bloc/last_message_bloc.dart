@@ -10,13 +10,21 @@ class LastMessageBloc
 
   LastMessageBloc(this._messageRepository) : super(InitLastMessageState()) {
     on<DefaulLastMessageEvent>((event, emit) {
-      if (event is UpdateLastMessageEvent) {
-        _updateLastMessageHandler(event, emit);
-      }
       if (event is GetAllLastMessageEvent) {
         _getAllLastMessageHandler(event, emit);
       }
+      if (event is UpdateLastMessageEvent) {
+        _updateLastMessageHandler(event, emit);
+      }
     });
+  }
+
+  Future<void> _getAllLastMessageHandler(
+      GetAllLastMessageEvent event, emit) async {
+    Map<String, Message> newLastMessage =
+        await _messageRepository.selectAllLastMessages();
+
+    emit(CurrentLastMessageState(lastMessage: newLastMessage));
   }
 
   Future<void> _updateLastMessageHandler(
@@ -30,14 +38,6 @@ class LastMessageBloc
     lastMessageState[insertedMessage.roomId] = insertedMessage;
 
     emit(CurrentLastMessageState(lastMessage: lastMessageState));
-  }
-
-  Future<void> _getAllLastMessageHandler(
-      GetAllLastMessageEvent event, emit) async {
-    Map<String, Message> newLastMessage =
-        await _messageRepository.selectAllLastMessages();
-
-    emit(CurrentLastMessageState(lastMessage: newLastMessage));
   }
 }
 

@@ -75,6 +75,7 @@ class _RoolListState extends State<RoomList> {
     if (_roomIdController.text.isNotEmpty &&
         _userNameController.text.isNotEmpty) {
       RoomDto roomDto = await RoomApi().fetchRoomJoin(_roomIdController.text);
+      roomDto.userName = _userNameController.text;
 
       if (!mounted) return;
 
@@ -91,10 +92,7 @@ class _RoolListState extends State<RoomList> {
               Navigator.pop(context);
 
               CommonHelper.navigatePushHandler(
-                  context,
-                  ChatRoom(
-                      room: state.roomList[0],
-                      stompClient: StompProvider().stompClient));
+                  context, ChatRoom(room: state.roomList[0]));
             },
             child: RoomCreateDialog(
                 title: "방 생성하기",
@@ -117,10 +115,7 @@ class _RoolListState extends State<RoomList> {
               Navigator.pop(context);
 
               CommonHelper.navigatePushHandler(
-                  context,
-                  ChatRoom(
-                      room: state.roomList[0],
-                      stompClient: StompProvider().stompClient));
+                  context, ChatRoom(room: state.roomList[0]));
             },
             child: RoomCreateDialog(
                 title: "방 참가하기",

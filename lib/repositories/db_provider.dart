@@ -41,7 +41,7 @@ class DbProvider {
                     roomId TEXT,
                     sender TEXT,
                     message TEXT,
-                    time DATETIME)''';
+                    time TEXT)''';
 
     await db.execute(roomSql);
     await db.execute(messageSql);
@@ -52,16 +52,28 @@ class DbProvider {
     if (newVersion == 2) {
       // Modify scheme
       await db.execute("DROP TABLE room");
+      await db.execute("DROP TABLE message");
 
       String roomSql = '''CREATE TABLE room(
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         roomId TEXT,
                         roomName TEXT,
                         userName TEXT)''';
+
+      String messageSql = '''CREATE TABLE message(
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    type TEXT,
+                    roomId TEXT,
+                    sender TEXT,
+                    message TEXT,
+                    time TEXT)''';
+
       await db.execute(roomSql);
+      await db.execute(messageSql);
     } else if (newVersion == 4) {
       // Delete all rows
       await db.execute("DELETE FROM room");
+      await db.execute("DELETE FROM message");
     }
   }
 }

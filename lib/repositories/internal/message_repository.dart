@@ -9,10 +9,11 @@ class MessageRepository {
   Future<Message> insertMessage(MessageDto messageDto) async {
     final db = await _dbProvider.database;
 
+    messageDto.time = DateTime.now().toString();
     int insertedId = await db.insert(tableName, messageDto.toJson());
 
     var result =
-        await db.query(tableName, where: "id= ?", whereArgs: [insertedId]);
+        await db.query(tableName, where: "id = ?", whereArgs: [insertedId]);
 
     return Message.fromJson(result[0]);
   }

@@ -6,7 +6,7 @@ class Message extends Equatable {
   final String roomId;
   final String sender;
   final String message;
-  final DateTime createdt;
+  final String time;
 
   const Message(
       {required this.id,
@@ -14,7 +14,7 @@ class Message extends Equatable {
       required this.roomId,
       required this.sender,
       required this.message,
-      required this.createdt});
+      required this.time});
 
   Map<String, dynamic> toJson() {
     return {
@@ -23,7 +23,7 @@ class Message extends Equatable {
       'roomId': roomId,
       'sender': sender,
       'message': message,
-      "createdDt": createdt
+      "createdDt": time
     };
   }
 
@@ -34,7 +34,7 @@ class Message extends Equatable {
         roomId: json['roomId'],
         sender: json['sender'],
         message: json['message'],
-        createdt: json['createdDt']);
+        time: json['time']);
   }
 
   @override

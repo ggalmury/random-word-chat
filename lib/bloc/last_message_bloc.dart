@@ -9,12 +9,11 @@ class LastMessageBloc
   final MessageRepository _messageRepository;
 
   LastMessageBloc(this._messageRepository) : super(InitLastMessageState()) {
-    on<DefaulLastMessageEvent>((event, emit) {
+    on<DefaulLastMessageEvent>((event, emit) async {
       if (event is GetAllLastMessageEvent) {
-        _getAllLastMessageHandler(event, emit);
-      }
-      if (event is UpdateLastMessageEvent) {
-        _updateLastMessageHandler(event, emit);
+        await _getAllLastMessageHandler(event, emit);
+      } else if (event is UpdateLastMessageEvent) {
+        await _updateLastMessageHandler(event, emit);
       }
     });
   }
@@ -30,14 +29,16 @@ class LastMessageBloc
   Future<void> _updateLastMessageHandler(
       UpdateLastMessageEvent event, emit) async {
     MessageDto messageDto = event.messageDto;
+    print("updateDto: ${messageDto.message}");
     Message insertedMessage =
         await _messageRepository.insertMessage(messageDto);
+    print("updateMessage: ${insertedMessage.message}");
+    Map<String, Message> copiedLastMessageMap = Map.from(state.lastMessage);
 
-    Map<String, Message> lastMessageState = state.lastMessage;
-
-    lastMessageState[insertedMessage.roomId] = insertedMessage;
-
-    emit(CurrentLastMessageState(lastMessage: lastMessageState));
+    copiedLastMessageMap[insertedMessage.roomId] = insertedMessage;
+    print(
+        "mapMessage: ${copiedLastMessageMap[insertedMessage.roomId]?.message}");
+    emit(CurrentLastMessageState(lastMessage: copiedLastMessageMap));
   }
 }
 

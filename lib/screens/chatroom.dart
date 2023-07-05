@@ -1,21 +1,21 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:random_word_chat/bloc/last_message_bloc.dart';
 import 'package:random_word_chat/models/external/message_dto.dart';
+import 'package:random_word_chat/models/internal/message.dart';
+import 'package:random_word_chat/repositories/internal/message_repository.dart';
 import 'package:random_word_chat/utils/helpers/common_helper.dart';
 import 'package:random_word_chat/utils/helpers/stomp_provider.dart';
 import 'package:random_word_chat/widgets/boxes/speech_bubble.dart';
 import 'package:random_word_chat/widgets/boxes/other_message.dart';
 import 'package:random_word_chat/widgets/inputs/input_message.dart';
-import 'package:stomp_dart_client/stomp.dart';
-import '../models/external/room_dto.dart';
 import '../models/internal/room.dart';
 
 class ChatRoom extends StatefulWidget {
   final Room room;
-  final StompClient stompClient;
 
-  const ChatRoom({super.key, required this.room, required this.stompClient});
+  const ChatRoom({super.key, required this.room});
 
   @override
   State<ChatRoom> createState() => _ChatRoomState();
@@ -25,14 +25,14 @@ class _ChatRoomState extends State<ChatRoom> {
   final TextEditingController _textEditingController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
-  final List<RoomDto> _messageList = [];
+  List<Message> messageList = [];
 
   void _copyRoomId() {
     Clipboard.setData(ClipboardData(text: widget.room.roomId));
     CommonHelper.showSnackBar(context, "클립보드에 복사되었습니다");
   }
 
-  Widget _messageBox(MessageDto message) {
+  Widget _messageBox(Message message) {
     Widget chat;
 
     if (message.type == "new") {
@@ -66,6 +66,22 @@ class _ChatRoomState extends State<ChatRoom> {
     }
 
     _textEditingController.clear();
+  }
+
+  Future<void> initMessageList() async {
+    List<Message> fetchedMessage = await context
+        .read<MessageRepository>()
+        .selectMessagesByRoomId(widget.room.roomId);
+
+    setState(() {
+      messageList = fetchedMessage;
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    initMessageList();
   }
 
   @override
@@ -104,18 +120,27 @@ class _ChatRoomState extends State<ChatRoom> {
                         child: const Icon(Icons.copy, size: 20),
                       )
                     ]),
-                // Expanded(
-                //     child: Padding(
-                //         padding: const EdgeInsets.symmetric(vertical: 10),
-                //         child: ListView.builder(
-                //             controller: _scrollController,
-                //             itemCount: _messageList.length,
-                //             itemBuilder: (BuildContext context, int index) {
-                //               return Padding(
-                //                   padding:
-                //                       const EdgeInsets.symmetric(vertical: 10),
-                //                   child: _messageBox(_messageList[index]));
-                //             }))),
+                Expanded(
+                    child: BlocListener<LastMessageBloc,
+                            DefaultLastMessageState>(
+                        listener: (context, state) {
+                          print("alac");
+                          setState(() {
+                            messageList
+                                .add(state.lastMessage[widget.room.roomId]!);
+                          });
+                        },
+                        child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: ListView.builder(
+                                controller: _scrollController,
+                                itemCount: messageList.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 10),
+                                      child: _messageBox(messageList[index]));
+                                })))),
                 Container(
                   height: 60,
                   margin: const EdgeInsets.only(bottom: 20),

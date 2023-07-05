@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:random_word_chat/bloc/last_message_bloc.dart';
 import '../../models/internal/room.dart';
 import '../../screens/chatroom.dart';
 import '../../utils/helpers/common_helper.dart';
-import '../../utils/helpers/stomp_provider.dart';
 
 class RegisteredRoom extends StatelessWidget {
   final Room room;
@@ -13,8 +14,7 @@ class RegisteredRoom extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        CommonHelper.navigatePushHandler(context,
-            ChatRoom(room: room, stompClient: StompProvider().stompClient));
+        CommonHelper.navigatePushHandler(context, ChatRoom(room: room));
       },
       child: Container(
           height: 80,
@@ -53,7 +53,12 @@ class RegisteredRoom extends StatelessWidget {
                                   fontSize: 12))
                         ],
                       ),
-                      const Text("채팅 내용", style: TextStyle(fontSize: 12))
+                      BlocBuilder<LastMessageBloc, DefaultLastMessageState>(
+                          builder: (context, state) {
+                        return Text(
+                            state.lastMessage[room.roomId]?.message ?? "",
+                            style: const TextStyle(fontSize: 12));
+                      })
                     ]),
               ),
             ]),

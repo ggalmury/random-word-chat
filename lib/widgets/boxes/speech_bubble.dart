@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:random_word_chat/utils/constants/custom_color.dart';
-import '../../models/external/message_dto.dart';
+import '../../models/internal/message.dart';
 
 class SpeechBubble extends StatelessWidget {
-  final MessageDto meta;
+  final Message meta;
   final bool isMyMessage;
 
   const SpeechBubble(

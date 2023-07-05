@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:random_word_chat/widgets/boxes/speech_bubble.dart';
-import '../../models/external/message_dto.dart';
+import '../../models/internal/message.dart';
 
 class OtherMessage extends StatelessWidget {
-  final MessageDto meta;
+  final Message meta;
   final bool isMyMessage;
 
   const OtherMessage(

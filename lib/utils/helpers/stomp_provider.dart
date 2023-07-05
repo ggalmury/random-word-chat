@@ -33,6 +33,7 @@ class StompProvider {
             onWebSocketError: _onWebSocketError));
 
     stompClient.activate();
+    loggerNoStack.i("stomp client connected!");
   }
 
   void _onConnect(StompFrame stompFrame) {
@@ -57,13 +58,15 @@ class StompProvider {
     if (stompFrame.body != null) {
       final jsonMessage = jsonDecode(stompFrame.body!);
       final chatMessage = MessageDto.fromJson(jsonMessage);
+      print("_onMessage: ${chatMessage.message}");
 
       lastMessageBloc.add(UpdateLastMessageEvent(messageDto: chatMessage));
     }
   }
 
-  void emitMessage(MessageDto message) {
+  void emitMessage(MessageDto messageDto) {
+    print("emitMessage: ${messageDto.message}");
     stompClient.send(
-        destination: '/pub/chat/message', body: jsonEncode(message));
+        destination: '/pub/chat/message', body: jsonEncode(messageDto));
   }
 }

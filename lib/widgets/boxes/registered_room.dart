@@ -55,6 +55,7 @@ class RegisteredRoom extends StatelessWidget {
                       ),
                       BlocBuilder<LastMessageBloc, DefaultLastMessageState>(
                           builder: (context, state) {
+                        print("aallllalal");
                         return Text(
                             state.lastMessage[room.roomId]?.message ?? "",
                             style: const TextStyle(fontSize: 12));

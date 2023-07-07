@@ -3,7 +3,7 @@ class MessageDto {
   final String roomId;
   final String sender;
   final String message;
-  String? time;
+  int? time;
 
   MessageDto(
       {required this.type,

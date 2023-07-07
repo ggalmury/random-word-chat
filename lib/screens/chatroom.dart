@@ -82,6 +82,14 @@ class _ChatRoomState extends State<ChatRoom> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     initMessageList();
+
+    MessageDto message = MessageDto(
+        type: "new",
+        roomId: widget.room.roomId,
+        sender: widget.room.userName,
+        message: "");
+
+    StompProvider().emitMessage(message);
   }
 
   @override
@@ -124,7 +132,7 @@ class _ChatRoomState extends State<ChatRoom> {
                     child: BlocListener<LastMessageBloc,
                             DefaultLastMessageState>(
                         listener: (context, state) {
-                          print("alac");
+                          print("alacc");
                           setState(() {
                             messageList
                                 .add(state.lastMessage[widget.room.roomId]!);

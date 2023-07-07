@@ -9,7 +9,8 @@ class MessageRepository {
   Future<Message> insertMessage(MessageDto messageDto) async {
     final db = await _dbProvider.database;
 
-    messageDto.time = DateTime.now().toString();
+    messageDto.time = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
     int insertedId = await db.insert(tableName, messageDto.toJson());
 
     var result =
@@ -35,13 +36,16 @@ class MessageRepository {
     final db = await _dbProvider.database;
 
     var result = await db.query(tableName,
-        groupBy: "roomId", orderBy: "createdDt DESC", limit: 1);
+        groupBy: "roomId",
+        having: "time = MAX(time)",
+        orderBy: "time DESC",
+        limit: 1);
 
     Map<String, Message> lastMessageMap = {};
 
     for (var message in result) {
       String roomId = message['roomId'] as String;
-      lastMessageMap[roomId] = message as Message;
+      lastMessageMap[roomId] = Message.fromJson(message);
     }
 
     return lastMessageMap;

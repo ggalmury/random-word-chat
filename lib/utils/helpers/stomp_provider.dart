@@ -25,13 +25,14 @@ class StompProvider {
     _instance.lastMessageBloc = lastMessageBloc;
   }
 
-  void connectToChatServer() {
+  Future<void> connectToChatServer() async {
     stompClient = StompClient(
         config: StompConfig.SockJS(
             url: "http://43.200.100.168:8080/chat",
             onConnect: _onConnect,
             onWebSocketError: _onWebSocketError));
 
+    await Future.delayed(const Duration(milliseconds: 300));
     stompClient.activate();
     loggerNoStack.i("stomp client connected!");
   }
@@ -42,30 +43,23 @@ class StompProvider {
     for (var room in roomList) {
       stompClient.subscribe(
           destination: '/sub/chat/room/${room.roomId}', callback: _onMessage);
-
-      MessageDto message = MessageDto(
-          type: "new", roomId: room.roomId, sender: room.userName, message: "");
-
-      emitMessage(message);
     }
   }
 
   void _onWebSocketError(dynamic error) {
-    loggerNoStack.i(error);
+    loggerNoStack.e(error);
   }
 
   void _onMessage(StompFrame stompFrame) {
     if (stompFrame.body != null) {
       final jsonMessage = jsonDecode(stompFrame.body!);
       final chatMessage = MessageDto.fromJson(jsonMessage);
-      print("_onMessage: ${chatMessage.message}");
 
       lastMessageBloc.add(UpdateLastMessageEvent(messageDto: chatMessage));
     }
   }
 
   void emitMessage(MessageDto messageDto) {
-    print("emitMessage: ${messageDto.message}");
     stompClient.send(
         destination: '/pub/chat/message', body: jsonEncode(messageDto));
   }

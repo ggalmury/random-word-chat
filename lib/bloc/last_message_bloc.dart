@@ -29,16 +29,14 @@ class LastMessageBloc
   Future<void> _updateLastMessageHandler(
       UpdateLastMessageEvent event, emit) async {
     MessageDto messageDto = event.messageDto;
-    print("updateDto: ${messageDto.message}");
     Message insertedMessage =
         await _messageRepository.insertMessage(messageDto);
-    print("updateMessage: ${insertedMessage.message}");
-    Map<String, Message> copiedLastMessageMap = Map.from(state.lastMessage);
 
-    copiedLastMessageMap[insertedMessage.roomId] = insertedMessage;
-    print(
-        "mapMessage: ${copiedLastMessageMap[insertedMessage.roomId]?.message}");
-    emit(CurrentLastMessageState(lastMessage: copiedLastMessageMap));
+    Map<String, Message> copiedState = Map.from(state.lastMessage);
+    copiedState[insertedMessage.roomId] = insertedMessage;
+
+    emit(CurrentLastMessageState(lastMessage: copiedState));
+    print(copiedState[insertedMessage.roomId]?.message);
   }
 }
 

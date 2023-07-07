@@ -138,6 +138,7 @@ class _RoolListState extends State<RoomList> {
     StompProvider().connectToChatServer();
 
     context.read<RoomBloc>().add(GetAllRoomsEvent());
+    context.read<LastMessageBloc>().add(GetAllLastMessageEvent());
   }
 
   @override
@@ -159,7 +160,7 @@ class _RoolListState extends State<RoomList> {
               padding: EdgeInsets.symmetric(vertical: 20),
               child: Column(
                 children: [
-                  Text("랜덤 알고리즘 채팅",
+                  Text("rwc",
                       style: TextStyle(fontFamily: "suit_heavy", fontSize: 16)),
                   SizedBox(height: 20),
                   Row(

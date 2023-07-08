@@ -54,7 +54,7 @@ class StompProvider {
     if (stompFrame.body != null) {
       final jsonMessage = jsonDecode(stompFrame.body!);
       final chatMessage = MessageDto.fromJson(jsonMessage);
-
+      print(chatMessage.message);
       lastMessageBloc.add(UpdateLastMessageEvent(messageDto: chatMessage));
     }
   }

@@ -6,7 +6,7 @@ class Message extends Equatable {
   final String roomId;
   final String sender;
   final String message;
-  final String time;
+  final int time;
 
   const Message(
       {required this.id,
@@ -38,5 +38,5 @@ class Message extends Equatable {
   }
 
   @override
-  List<Object> get props => [roomId];
+  List<Object> get props => [roomId, message];
 }

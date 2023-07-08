@@ -47,15 +47,19 @@ class RegisteredRoom extends StatelessWidget {
                                   fontFamily: "suit_heavy", fontSize: 16),
                             ),
                           ),
-                          const Text("12:01",
-                              style: TextStyle(
-                                  fontFamily: "pretendard_medium",
-                                  fontSize: 12))
+                          // fix here
+                          BlocBuilder<LastMessageBloc, DefaultLastMessageState>(
+                            builder: (context, state) {
+                              return const Text("12:04",
+                                  style: TextStyle(
+                                      fontFamily: "pretendard_medium",
+                                      fontSize: 12));
+                            },
+                          )
                         ],
                       ),
                       BlocBuilder<LastMessageBloc, DefaultLastMessageState>(
                           builder: (context, state) {
-                        print("aallllalal");
                         return Text(
                             state.lastMessage[room.roomId]?.message ?? "",
                             style: const TextStyle(fontSize: 12));

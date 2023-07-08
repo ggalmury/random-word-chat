@@ -66,7 +66,7 @@ class DbProvider {
                     roomId TEXT,
                     sender TEXT,
                     message TEXT,
-                    time TEXT)''';
+                    time INTEGER)''';
 
       await db.execute(roomSql);
       await db.execute(messageSql);

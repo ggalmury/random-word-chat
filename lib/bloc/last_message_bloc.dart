@@ -32,11 +32,11 @@ class LastMessageBloc
     Message insertedMessage =
         await _messageRepository.insertMessage(messageDto);
 
-    Map<String, Message> copiedState = Map.from(state.lastMessage);
-    copiedState[insertedMessage.roomId] = insertedMessage;
+    Map<String, Message> updatedLastMessage = Map.from(state.lastMessage);
 
-    emit(CurrentLastMessageState(lastMessage: copiedState));
-    print(copiedState[insertedMessage.roomId]?.message);
+    updatedLastMessage[insertedMessage.roomId] = insertedMessage;
+
+    emit(CurrentLastMessageState(lastMessage: updatedLastMessage));
   }
 }
 

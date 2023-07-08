@@ -7,6 +7,7 @@ import 'package:random_word_chat/utils/constants/custom_color.dart';
 import 'package:random_word_chat/utils/helpers/stomp_provider.dart';
 import 'package:random_word_chat/widgets/boxes/registered_room.dart';
 import '../models/external/room_dto.dart';
+import '../models/internal/room.dart';
 import '../utils/helpers/common_helper.dart';
 import '../widgets/buttons/btn_room_category.dart';
 import '../widgets/modals/room_creact_dialog.dart';
@@ -106,6 +107,10 @@ class _RoolListState extends State<RoomList> {
         });
   }
 
+  void _navigateToChatRoom(Room room) {
+    CommonHelper.navigatePushHandler(context, ChatRoom(room: room));
+  }
+
   void _joinRoomDialog() {
     showDialog(
         context: context,
@@ -113,9 +118,7 @@ class _RoolListState extends State<RoomList> {
           return BlocListener<RoomBloc, DefaultRoomState>(
             listener: (context, state) {
               Navigator.pop(context);
-
-              CommonHelper.navigatePushHandler(
-                  context, ChatRoom(room: state.roomList[0]));
+              _navigateToChatRoom(state.roomList[0]);
             },
             child: RoomCreateDialog(
                 title: "방 참가하기",

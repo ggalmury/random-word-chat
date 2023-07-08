@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:random_word_chat/bloc/last_message_bloc.dart';
@@ -132,10 +133,17 @@ class _ChatRoomState extends State<ChatRoom> {
                     child: BlocListener<LastMessageBloc,
                             DefaultLastMessageState>(
                         listener: (context, state) {
-                          print("alacc");
                           setState(() {
                             messageList
                                 .add(state.lastMessage[widget.room.roomId]!);
+                          });
+
+                          SchedulerBinding.instance.addPostFrameCallback((_) {
+                            _scrollController.animateTo(
+                              _scrollController.position.maxScrollExtent,
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeOut,
+                            );
                           });
                         },
                         child: Padding(

@@ -84,6 +84,10 @@ class _RoolListState extends State<RoomList> {
     }
   }
 
+  void _navigateToChatRoom(Room room) {
+    CommonHelper.navigatePushHandler(context, ChatRoom(room: room));
+  }
+
   void _createRoomDialog() {
     showDialog(
         context: context,
@@ -91,9 +95,8 @@ class _RoolListState extends State<RoomList> {
           return BlocListener<RoomBloc, DefaultRoomState>(
             listener: (context, state) {
               Navigator.pop(context);
-
-              CommonHelper.navigatePushHandler(
-                  context, ChatRoom(room: state.roomList[0]));
+              StompProvider().onSubscribe(state.roomList[0]);
+              _navigateToChatRoom(state.roomList[0]);
             },
             child: RoomCreateDialog(
                 title: "방 생성하기",
@@ -107,10 +110,6 @@ class _RoolListState extends State<RoomList> {
         });
   }
 
-  void _navigateToChatRoom(Room room) {
-    CommonHelper.navigatePushHandler(context, ChatRoom(room: room));
-  }
-
   void _joinRoomDialog() {
     showDialog(
         context: context,
@@ -118,6 +117,7 @@ class _RoolListState extends State<RoomList> {
           return BlocListener<RoomBloc, DefaultRoomState>(
             listener: (context, state) {
               Navigator.pop(context);
+              StompProvider().onSubscribe(state.roomList[0]);
               _navigateToChatRoom(state.roomList[0]);
             },
             child: RoomCreateDialog(

@@ -41,8 +41,7 @@ class StompProvider {
     List<Room> roomList = roomBloc.state.roomList;
 
     for (var room in roomList) {
-      stompClient.subscribe(
-          destination: '/sub/chat/room/${room.roomId}', callback: _onMessage);
+      onSubscribe(room);
     }
   }
 
@@ -54,9 +53,14 @@ class StompProvider {
     if (stompFrame.body != null) {
       final jsonMessage = jsonDecode(stompFrame.body!);
       final chatMessage = MessageDto.fromJson(jsonMessage);
-      print(chatMessage.message);
+
       lastMessageBloc.add(UpdateLastMessageEvent(messageDto: chatMessage));
     }
+  }
+
+  void onSubscribe(Room room) {
+    stompClient.subscribe(
+        destination: '/sub/chat/room/${room.roomId}', callback: _onMessage);
   }
 
   void emitMessage(MessageDto messageDto) {

@@ -47,11 +47,13 @@ class RegisteredRoom extends StatelessWidget {
                                   fontFamily: "suit_heavy", fontSize: 16),
                             ),
                           ),
-                          // fix here
                           BlocBuilder<LastMessageBloc, DefaultLastMessageState>(
                             builder: (context, state) {
-                              return const Text("12:04",
-                                  style: TextStyle(
+                              return Text(
+                                  CommonHelper.formatDateTime(state
+                                          .lastMessage[room.roomId]?.time) ??
+                                      "",
+                                  style: const TextStyle(
                                       fontFamily: "pretendard_medium",
                                       fontSize: 12));
                             },

@@ -10,6 +10,19 @@ class RegisteredRoom extends StatelessWidget {
 
   const RegisteredRoom({super.key, required this.room});
 
+  bool _buildWhen(DefaultLastMessageState prev, DefaultLastMessageState curr) {
+    return prev.lastMessage[room.roomId]?.message !=
+        curr.lastMessage[room.roomId]?.message;
+  }
+
+  String _currentMessage(String? message) {
+    return message ?? "";
+  }
+
+  String _currentTime(int? time) {
+    return CommonHelper.formatDateTime(time) ?? "";
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -48,11 +61,13 @@ class RegisteredRoom extends StatelessWidget {
                             ),
                           ),
                           BlocBuilder<LastMessageBloc, DefaultLastMessageState>(
+                            buildWhen: (previous, current) {
+                              return _buildWhen(previous, current);
+                            },
                             builder: (context, state) {
                               return Text(
-                                  CommonHelper.formatDateTime(state
-                                          .lastMessage[room.roomId]?.time) ??
-                                      "",
+                                  _currentTime(
+                                      state.lastMessage[room.roomId]?.time),
                                   style: const TextStyle(
                                       fontFamily: "pretendard_medium",
                                       fontSize: 12));
@@ -61,9 +76,14 @@ class RegisteredRoom extends StatelessWidget {
                         ],
                       ),
                       BlocBuilder<LastMessageBloc, DefaultLastMessageState>(
-                          builder: (context, state) {
+                          buildWhen: (previous, current) {
+                        return _buildWhen(previous, current);
+                      }, builder: (context, state) {
                         return Text(
-                            state.lastMessage[room.roomId]?.message ?? "",
+                            _currentMessage(
+                                state.lastMessage[room.roomId]?.message),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(fontSize: 12));
                       })
                     ]),

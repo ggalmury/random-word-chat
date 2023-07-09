@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:random_word_chat/bloc/last_message_bloc.dart';
@@ -22,8 +21,8 @@ class ChatRoom extends StatefulWidget {
   State<ChatRoom> createState() => _ChatRoomState();
 }
 
-class _ChatRoomState extends State<ChatRoom> {
-  final TextEditingController _textEditingController = TextEditingController();
+class _ChatRoomState extends State<ChatRoom> with WidgetsBindingObserver {
+  final TextEditingController _messageController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
   List<Message> messageList = [];
@@ -31,6 +30,16 @@ class _ChatRoomState extends State<ChatRoom> {
   void _copyRoomId() {
     Clipboard.setData(ClipboardData(text: widget.room.roomId));
     CommonHelper.showSnackBar(context, "클립보드에 복사되었습니다");
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+      );
+    });
   }
 
   Widget _messageBox(Message message) {
@@ -56,17 +65,17 @@ class _ChatRoomState extends State<ChatRoom> {
   }
 
   void _emitMessage() {
-    if (_textEditingController.text.isNotEmpty) {
+    if (_messageController.text.isNotEmpty) {
       MessageDto message = MessageDto(
           type: "talk",
           roomId: widget.room.roomId,
           sender: widget.room.userName,
-          message: _textEditingController.text);
+          message: _messageController.text);
 
       StompProvider().emitMessage(message);
     }
 
-    _textEditingController.clear();
+    _messageController.clear();
   }
 
   Future<void> initMessageList() async {
@@ -80,24 +89,40 @@ class _ChatRoomState extends State<ChatRoom> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    initMessageList();
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+      if (isKeyboardOpen) {
+        _scrollToBottom();
+      }
+    });
+  }
 
-    MessageDto message = MessageDto(
-        type: "new",
-        roomId: widget.room.roomId,
-        sender: widget.room.userName,
-        message: "");
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
-    StompProvider().emitMessage(message);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      initMessageList();
+
+      MessageDto message = MessageDto(
+          type: "new",
+          roomId: widget.room.roomId,
+          sender: widget.room.userName,
+          message: "");
+
+      StompProvider().emitMessage(message);
+    });
   }
 
   @override
   void dispose() {
-    _textEditingController.dispose();
+    _messageController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
+    WidgetsBinding.instance.removeObserver(this);
 
     super.dispose();
   }
@@ -138,13 +163,7 @@ class _ChatRoomState extends State<ChatRoom> {
                                 .add(state.lastMessage[widget.room.roomId]!);
                           });
 
-                          SchedulerBinding.instance.addPostFrameCallback((_) {
-                            _scrollController.animateTo(
-                              _scrollController.position.maxScrollExtent,
-                              duration: const Duration(milliseconds: 200),
-                              curve: Curves.easeOut,
-                            );
-                          });
+                          _scrollToBottom();
                         },
                         child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 10),
@@ -164,7 +183,7 @@ class _ChatRoomState extends State<ChatRoom> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         InputMessage(
-                          textEditingController: _textEditingController,
+                          textEditingController: _messageController,
                           focusNode: _focusNode,
                         ),
                         GestureDetector(

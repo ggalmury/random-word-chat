@@ -72,7 +72,7 @@ class DbProvider {
       await db.execute(messageSql);
     } else if (newVersion == 4) {
       // Delete all rows
-      // await db.execute("DELETE FROM room");
+      await db.execute("DELETE FROM room");
       await db.execute("DELETE FROM message");
     }
   }

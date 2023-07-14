@@ -92,9 +92,11 @@ class _ChatRoomState extends State<ChatRoom> with WidgetsBindingObserver {
   void didChangeMetrics() {
     super.didChangeMetrics();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
-      if (isKeyboardOpen) {
-        _scrollToBottom();
+      if (mounted) {
+        final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+        if (isKeyboardOpen) {
+          _scrollToBottom();
+        }
       }
     });
   }
